@@ -14,6 +14,7 @@ export default function TextInputField({label,onchangeText,password=false}:TextI
     }}>
       <Text style={{color: Colors.GRAY}}>{label}</Text>
       <TextInput placeholder={label} style={styles.textInput} secureTextEntry={password}
+      onChangeText={onchangeText}
       />
      
     </View>
