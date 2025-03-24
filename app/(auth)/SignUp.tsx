@@ -5,8 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ToastAndroid,
+  ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Colors from "@/data/Colors";
 import TextInputField from "@/components/Shared/TextInputField";
@@ -16,21 +17,26 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/configs/FirebaseConfig";
 import { upload } from "cloudinary-react-native";
 import { cld, options } from "@/configs/CloudinaryConfig";
-import axios from 'axios';
-import { router } from "expo-router";
-
+import axios from "axios";
+import { useRouter } from "expo-router";
+import { AuthContext } from "@/context/AuthContext";
 
 export default function SignUp() {
+  const router = useRouter();
   const [profileImage, setProfileImage] = useState<string | undefined>();
   const [fullName, setFullName] = useState<string | undefined>();
   const [email, setEmail] = useState<string | undefined>();
   const [password, setPassword] = useState<string | undefined>();
+  const [loading, setLoading] = useState(false);
+  const { user, setUser } = useContext(AuthContext);
 
   const onBtnPress = () => {
     if (!email || !password || !fullName) {
       ToastAndroid.show("Please enter all details!", ToastAndroid.BOTTOM);
       return;
     }
+
+    setLoading(true);
 
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (userCredentials) => {
@@ -46,28 +52,30 @@ export default function SignUp() {
             }
             if (response) {
               console.log(response?.url);
-              const result=await axios.post(process.env.EXPO_PUBLIC_HOST_URL+"/user",{
-                name:fullName,
-                email:email,
-                image:response?.url
-              });
+              const result = await axios.post(
+                process.env.EXPO_PUBLIC_HOST_URL + "/user",
+                {
+                  name: fullName,
+                  email: email,
+                  image: response?.url,
+                }
+              );
               console.log(result);
+              setLoading(false);
               // Route to Homescreen
-              router.push('/landing')
+              router.push("/landing");
             }
           },
         });
-
-        // Save to Database
       })
       .catch((error) => {
+        setLoading(false);
         const errorMsg = error?.message;
         ToastAndroid.show(errorMsg, ToastAndroid.BOTTOM);
       });
   };
 
   const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
@@ -107,10 +115,7 @@ export default function SignUp() {
         <View>
           <TouchableOpacity onPress={() => pickImage()}>
             {profileImage ? (
-              <Image
-                source={{ uri: profileImage }}
-                style={styles.profileImage}
-              />
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
             ) : (
               <Image
                 source={require("./../../assets/images/profile.png")}
@@ -133,13 +138,11 @@ export default function SignUp() {
 
       <TextInputField label="Full Name" onchangeText={(v) => setFullName(v)} />
       <TextInputField label="Email" onchangeText={(v) => setEmail(v)} />
-      <TextInputField
-        label="Password"
-        password={true}
-        onchangeText={(v) => setPassword(v)}
-      />
+      <TextInputField label="Password" password={true} onchangeText={(v) => setPassword(v)} />
 
-      <Button text="Create Account" onPress={onBtnPress} />
+      {loading && <ActivityIndicator size="large" color={Colors.PRIMARY} style={{ marginTop: 10 }} />}
+
+      <Button text="Create Account" onPress={onBtnPress} loading={loading} />
     </View>
   );
 }

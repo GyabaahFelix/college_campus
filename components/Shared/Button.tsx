@@ -1,13 +1,14 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import React from "react";
 import Colors from "@/data/Colors";
 
 type ButtonProps = {
   text: string;
   onPress: () => void;
+  loading:boolean
 };
 
-export default function Button({ text, onPress }: ButtonProps) {
+export default function Button({ text, onPress, loading=false }: ButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -18,6 +19,7 @@ export default function Button({ text, onPress }: ButtonProps) {
         borderRadius: 10,
       }}
     >
+      {loading? <ActivityIndicator size={'large'} color={Colors.WHITE}/>:
       <Text
         style={{
           fontSize: 18,
@@ -26,7 +28,7 @@ export default function Button({ text, onPress }: ButtonProps) {
         }}
       >
         {text}
-      </Text>
+      </Text>}
     </TouchableOpacity>
   );
 }
