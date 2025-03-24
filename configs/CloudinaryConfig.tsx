@@ -9,3 +9,9 @@ export const cld=new Cloudinary({
         secure: true
     }
 })
+
+export const options={
+    upload_preset:'college-campus',
+    tag: 'sample',
+    unsigned:true
+}
